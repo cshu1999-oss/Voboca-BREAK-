@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿仁 x 排球少年TCG組牌工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            background-image: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #e53935, #e35d5b);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        .channel-link {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 15px;
+            color: white;
+        }
+        
+        .channel-link a {
+            color: #ffeb3b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .channel-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .cards-section {
+            flex: 3;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .deck-section {
+            flex: 2;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #e53935;
+            color: #e53935;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title span {
+            font-size: 1rem;
+            color: #666;
+            font-weight: normal;
+        }
+        
+        .card-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .type-btn {
+            padding: 8px 16px;
+            background: #f1f1f1;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .type-btn.active {
+            background: #e53935;
+            color: white;
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+            flex: 1;
+        }
+        
+        .card {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border-color: #e53935;
+        }
+        
+        .card.dragging {
+            opacity: 0.7;
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 0.9rem;
+        }
+        
+        .card-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #e53935;
+            font-size: 0.95rem;
+            word-break: break-word;
+            width: 100%;
+        }
+        
+        .card-type {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+            padding: 3px 8px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .card-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .add-btn {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .deck-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 18px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .deck-count {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #e53935;
+        }
+        
+        .deck-types {
+            font-size: 1rem;
+            color: #666;
+        }
+        
+        .deck-area {
+            border: 2px dashed #e53935;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+            background: #fff9f9;
+            transition: all 0.3s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .deck-area.drag-over {
+            background: #ffeaea;
+            border-color: #c62828;
+        }
+        
+        .deck-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .deck-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            border: 1px solid #eee;
+        }
+        
+        .deck-card-image {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #eee;
+        }
+        
+        .deck-card-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 0.85rem;
+        }
+        
+        .deck-card-type {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        
+        .deck-card-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        
+        .count-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .remove-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .count-number {
+            font-weight: bold;
+            color: #e53935;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        .empty-deck {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-style: italic;
+            font-size: 1.1rem;
+            grid-column: 1 / -1;
+        }
+        
+        .deck-stats {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stats-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #e53935;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            color: #666;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #e53935;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #4caf50;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .warning {
+            background: #ff9800;
+        }
+        
+        .error {
+            background: #f44336;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .deck-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .card-type-selector {
+                justify-content: center;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .channel-link {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>阿仁 x 排球少年TCG組牌工具</h1>
+            <p class="subtitle">點擊或拖拽卡片添加到牌組！牌組最多40張，事件卡最多8張</p>
+            <p class="channel-link">阿仁的頻道 : <a href="https://www.youtube.com/@c.shu1999" target="_blank">https://www.youtube.com/@c.shu1999</a></p>
+        </header>
+        
+        <div class="main-content">
+            <section class="cards-section">
+                <h2 class="section-title">卡片庫 <span>點擊或拖拽卡片添加到牌組</span></h2>
+                
+                <div class="card-type-selector">
+                    <button class="type-btn active" data-type="all">全部</button>
+                    <button class="type-btn" data-type="karasuno">烏野高校</button>
+                    <button class="type-btn" data-type="nekoma">音駒高校</button>
+                    <button class="type-btn" data-type="aoba-johsai">青葉城西</button>
+                    <button class="type-btn" data-type="fukurodani">梟谷高校</button>
+                    <button class="type-btn" data-type="other">其他高校</button>
+                    <button class="type-btn" data-type="event">事件</button>
+                    <button class="type-btn" data-type="hvbp">HVBP</button>
+                    <button class="type-btn" data-type="hvpr">HVPR</button>
+                </div>
+                
+                <div class="cards-container" id="cards-container">
+                    <!-- 卡片將由JavaScript動態生成 -->
+                </div>
+            </section>
+            
+            <section class="deck-section">
+                <h2 class="section-title">我的牌組 <span id="deck-count">0/40</span></h2>
+                
+                <div class="deck-info">
+                    <div class="deck-count">卡片數量: <span id="total-count">0</span>/40</div>
+                    <div class="deck-types">事件卡: <span id="event-count">0</span>/8</div>
+                </div>
+                
+                <div class="deck-area" id="deck-area">
+                    <div class="deck-list" id="deck-list">
+                        <div class="empty-deck">牌組目前是空的，請從左側添加卡片</div>
+                    </div>
+                </div>
+                
+                <div class="deck-stats">
+                    <div class="stats-title">牌組統計</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">總卡片數:</span>
+                            <span class="stat-value" id="stat-total">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">事件卡:</span>
+                            <span class="stat-value" id="stat-event">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <footer>
+            <p>阿仁 x 排球少年TCG組牌工具 &copy; 2023 - 輕鬆構建您的專屬牌組</p>
+        </footer>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // 預先內建的所有卡片數據
+        const allCards = [
+            // 烏野高校卡片
+            { id: 1, name: "HV-D01-001", type: "karasuno", image: "https://i.ibb.co/qYYQqCyH/photo1.jpg" },
+            { id: 2, name: "HV-D01-002", type: "karasuno", image: "https://i.ibb.co/x83ZmCvG/photo2.jpg" },
+            { id: 3, name: "HV-D01-003", type: "karasuno", image: "https://i.ibb.co/1YK4B4dv/photo3.jpg" },
+            { id: 4, name: "HV-D01-004", type: "karasuno", image: "https://i.ibb.co/N6G57GZw/photo4.jpg" },
+            { id: 5, name: "HV-D01-005", type: "karasuno", image: "https://i.ibb.co/PvvYJP0C/photo5.jpg" },
+            { id: 6, name: "HV-D01-006", type: "karasuno", image: "https://i.ibb.co/wF6pPSJT/photo6.jpg" },
+            { id: 7, name: "HV-D01-007", type: "karasuno", image: "https://i.ibb.co/FqdgZT4N/photo7.jpg" },
+            { id: 8, name: "HV-D01-008", type: "karasuno", image: "https://i.ibb.co/zTpSXkPr/photo8.jpg" },
+            { id: 9, name: "HV-D01-009", type: "karasuno", image: "https://i.ibb.co/prdHzCbb/photo9.jpg" },
+            { id: 10, name: "HV-D01-010", type: "karasuno", image: "https://i.ibb.co/8gyTvHv7/photo10.jpg" },
+            { id: 11, name: "HV-P01-001", type: "karasuno", image: "https://i.ibb.co/KSYdxZj/photo11.jpg" },
+            { id: 12, name: "HV-P01-002", type: "karasuno", image: "https://i.ibb.co/9Hf2Cw4M/photo12.jpg" },
+            { id: 13, name: "HV-P01-002p", type: "karasuno", image: "https://i.ibb.co/YnwhX1h/photo13.jpg" },
+            { id: 14, name: "HV-P01-003", type: "karasuno", image: "https://i.ibb.co/RpVSK1zc/photo14.jpg" },
+            { id: 15, name: "HV-P01-004", type: "karasuno", image: "https://i.ibb.co/whDMDRwQ/photo15.jpg" },
+            { id: 16, name: "HV-P01-004p", type: "karasuno", image: "https://i.ibb.co/3yRYR2Ws/photo16.jpg" },
+            { id: 17, name: "HV-P01-005", type: "karasuno", image: "https://i.ibb.co/nM8TNxbJ/photo17.jpg" },
+            { id: 18, name: "HV-P01-006", type: "karasuno", image: "https://i.ibb.co/4gF0Py2c/photo18.jpg" },
+            { id: 19, name: "HV-P01-006p", type: "karasuno", image: "https://i.ibb.co/Y7BqdyPy/photo19.jpg" },
+            { id: 20, name: "HV-P01-007", type: "karasuno", image: "https://i.ibb.co/3qWWtTy/photo20.jpg" },
+            { id: 21, name: "HV-P01-008", type: "karasuno", image: "https://i.ibb.co/7JXb71TM/photo21.jpg" },
+            { id: 22, name: "HV-P01-008p", type: "karasuno", image: "https://i.ibb.co/PvBxDC8K/photo22.jpg" },
+            { id: 23, name: "HV-P01-009", type: "karasuno", image: "https://i.ibb.co/nMFx5Kch/photo23.jpg" },
+            { id: 24, name: "HV-P01-010", type: "karasuno", image: "https://i.ibb.co/twvdkQHB/photo24.jpg" },
+            { id: 25, name: "HV-P01-011", type: "karasuno", image: "https://i.ibb.co/TBgP8FMY/photo25.jpg" },
+            { id: 26, name: "HV-P01-011p", type: "karasuno", image: "https://i.ibb.co/cXhrR3qT/photo26.jpg" },
+            { id: 27, name: "HV-P01-012", type: "karasuno", image: "https://i.ibb.co/QzmRbGr/photo27.jpg" },
+            { id: 28, name: "HV-P01-012p", type: "karasuno", image: "https://i.ibb.co/tpHwwQCG/photo28.jpg" },
+            { id: 29, name: "HV-P01-013", type: "karasuno", image: "https://i.ibb.co/7xFqd8Pn/photo29.jpg" },
+            { id: 30, name: "HV-P01-014", type: "karasuno", image: "https://i.ibb.co/hRMr4JVP/photo30.jpg" },
+            { id: 31, name: "HV-P01-014p", type: "karasuno", image: "https://i.ibb.co/n8zWqW2w/photo31.jpg" },
+            { id: 32, name: "HV-P01-015", type: "karasuno", image: "https://i.ibb.co/6Rm51cYW/photo32.jpg" },
+            { id: 33, name: "HV-P01-015p", type: "karasuno", image: "https://i.ibb.co/8nPtWRZF/photo33.jpg" },
+            { id: 34, name: "HV-P01-016", type: "karasuno", image: "https://i.ibb.co/hJW97TC7/photo34.jpg" },
+
+            // 音駒高校卡片
+            { id: 35, name: "HV-D02-001", type: "nekoma", image: "https://i.ibb.co/ccvLPhmM/photo35.jpg" },
+            { id: 36, name: "HV-D02-002", type: "nekoma", image: "https://i.ibb.co/ZpRwxgZp/photo36.jpg" },
+            { id: 37, name: "HV-D02-003", type: "nekoma", image: "https://i.ibb.co/3y7hfYLr/photo37.jpg" },
+            { id: 38, name: "HV-D02-004", type: "nekoma", image: "https://i.ibb.co/3yWMX6Ys/photo38.jpg" },
+            { id: 39, name: "HV-D02-005", type: "nekoma", image: "https://i.ibb.co/HfzKbw9X/photo39.jpg" },
+            { id: 40, name: "HV-D02-006", type: "nekoma", image: "https://i.ibb.co/MD9MZJSG/photo40.jpg" },
+            { id: 41, name: "HV-D02-007", type: "nekoma", image: "https://i.ibb.co/bg9f97Hb/photo41.jpg" },
+            { id: 42, name: "HV-D02-008", type: "nekoma", image: "https://i.ibb.co/wrhGPdnh/photo42.jpg" },
+            { id: 43, name: "HV-D02-009", type: "nekoma", image: "https://i.ibb.co/G4DG7jwy/photo43.jpg" },
+            { id: 44, name: "HV-D02-010", type: "nekoma", image: "https://i.ibb.co/fGSC5Y9d/photo44.jpg" },
+            { id: 45, name: "HV-P01-017", type: "nekoma", image: "https://i.ibb.co/XfYVYNps/photo45.jpg" },
+            { id: 46, name: "HV-P01-018", type: "nekoma", image: "https://i.ibb.co/VWScqKqJ/photo46.jpg" },
+            { id: 47, name: "HV-P01-018p", type: "nekoma", image: "https://i.ibb.co/gZnG3yKL/photo47.jpg" },
+            { id: 48, name: "HV-P01-019", type: "nekoma", image: "https://i.ibb.co/Xk8NzbLJ/photo48.jpg" },
+            { id: 49, name: "HV-P01-020", type: "nekoma", image: "https://i.ibb.co/1Y8Kbgkj/photo49.jpg" },
+            { id: 50, name: "HV-P01-021", type: "nekoma", image: "https://i.ibb.co/PsRQwrQG/photo50.jpg" },
+            { id: 51, name: "HV-P01-021p", type: "nekoma", image: "https://i.ibb.co/rKtsxf1s/photo51.jpg" },
+            { id: 52, name: "HV-P01-022", type: "nekoma", image: "https://i.ibb.co/nMz6bqQd/photo52.jpg" },
+            { id: 53, name: "HV-P01-023", type: "nekoma", image: "https://i.ibb.co/60yQMk7J/photo53.jpg" },
+            { id: 54, name: "HV-P01-023p", type: "nekoma", image: "https://i.ibb.co/JYZDS9G/photo54.jpg" },
+            { id: 55, name: "HV-P01-024", type: "nekoma", image: "https://i.ibb.co/MyMFzmN0/photo55.jpg" },
+            { id: 56, name: "HV-P01-025", type: "nekoma", image: "https://i.ibb.co/cKYGPvcS/photo56.jpg" },
+            { id: 57, name: "HV-P01-026", type: "nekoma", image: "https://i.ibb.co/zTwKT0pn/photo57.jpg" },
+            { id: 58, name: "HV-P01-027", type: "nekoma", image: "https://i.ibb.co/nNWHh370/photo58.jpg" },
+            { id: 59, name: "HV-P01-027p", type: "nekoma", image: "https://i.ibb.co/RkgZ98Mz/photo59.jpg" },
+            { id: 60, name: "HV-P01-028", type: "nekoma", image: "https://i.ibb.co/BVVtmJtZ/photo60.jpg" },
+            { id: 61, name: "HV-P01-029", type: "nekoma", image: "https://i.ibb.co/Y7R0cYFr/photo61.jpg" },
+            { id: 62, name: "HV-P01-029p", type: "nekoma", image: "https://i.ibb.co/4n5P3GJh/photo62.jpg" },
+            { id: 63, name: "HV-P01-030", type: "nekoma", image: "https://i.ibb.co/S4L2V7mW/photo63.jpg" },
+            { id: 64, name: "HV-P01-031", type: "nekoma", image: "https://i.ibb.co/QjptDNx3/photo64.jpg" },
+            { id: 65, name: "HV-P01-032", type: "nekoma", image: "https://i.ibb.co/YTw7PNDm/photo65.jpg" },
+
+            // 青葉城西卡片
+            { id: 66, name: "HV-P01-033", type: "aoba-johsai", image: "https://i.ibb.co/TDwm5zBB/photo66.jpg" },
+            { id: 67, name: "HV-P01-033p", type: "aoba-johsai", image: "https://i.ibb.co/8nsVLX4R/photo67.jpg" },
+            { id: 68, name: "HV-P01-034", type: "aoba-johsai", image: "https://i.ibb.co/GQDC9VrJ/photo68.jpg" },
+            { id: 69, name: "HV-P01-035", type: "aoba-johsai", image: "https://i.ibb.co/fztrQxpq/photo69.jpg" },
+            { id: 70, name: "HV-P01-035p", type: "aoba-johsai", image: "https://i.ibb.co/LdCYLVpY/photo70.jpg" },
+            { id: 71, name: "HV-P01-036", type: "aoba-johsai", image: "https://i.ibb.co/21v60x7w/photo71.jpg" },
+            { id: 72, name: "HV-P01-037", type: "aoba-johsai", image: "https://i.ibb.co/SX0fVrwn/photo72.jpg" },
+            { id: 73, name: "HV-P01-038", type: "aoba-johsai", image: "https://i.ibb.co/Q307zP2n/photo73.jpg" },
+            { id: 74, name: "HV-P01-039", type: "aoba-johsai", image: "https://i.ibb.co/C5gGcWXr/photo74.jpg" },
+            { id: 75, name: "HV-P01-040", type: "aoba-johsai", image: "https://i.ibb.co/gFgHfqL4/photo75.jpg" },
+            { id: 76, name: "HV-P01-041", type: "aoba-johsai", image: "https://i.ibb.co/9kmBCPY4/photo76.jpg" },
+            { id: 77, name: "HV-P01-042", type: "aoba-johsai", image: "https://i.ibb.co/FLqC0JkK/photo77.jpg" },
+
+            // 梟谷高校卡片
+            { id: 78, name: "HV-P01-043", type: "fukurodani", image: "https://i.ibb.co/ZzMdbT3n/photo78.jpg" },
+            { id: 79, name: "HV-P01-043p", type: "fukurodani", image: "https://i.ibb.co/1HmNvQX/photo79.jpg" },
+            { id: 80, name: "HV-P01-044", type: "fukurodani", image: "https://i.ibb.co/BK79P8jM/photo80.jpg" },
+            { id: 81, name: "HV-P01-045", type: "fukurodani", image: "https://i.ibb.co/Xk60Y8xr/photo81.jpg" },
+            { id: 82, name: "HV-P01-045p", type: "fukurodani", image: "https://i.ibb.co/MDRdK5SG/photo82.jpg" },
+            { id: 83, name: "HV-P01-046", type: "fukurodani", image: "https://i.ibb.co/5X93Yxd7/photo83.jpg" },
+            { id: 84, name: "HV-P01-047", type: "fukurodani", image: "https://i.ibb.co/1fyKgdKc/photo84.jpg" },
+            { id: 85, name: "HV-P01-048", type: "fukurodani", image: "https://i.ibb.co/mKzsCHD/photo85.jpg" },
+            { id: 86, name: "HV-P01-049", type: "fukurodani", image: "https://i.ibb.co/Wpn2v1nZ/photo86.jpg" },
+            { id: 87, name: "HV-P01-050", type: "fukurodani", image: "https://i.ibb.co/yBh4CQxL/photo87.jpg" },
+            { id: 88, name: "HV-P01-051", type: "fukurodani", image: "https://i.ibb.co/3YrY2bBX/photo88.jpg" },
+            { id: 89, name: "HV-P01-052", type: "fukurodani", image: "https://i.ibb.co/N27g9qm3/photo89.jpg" },
+
+            // 其他高校卡片
+            { id: 90, name: "HV-P01-053", type: "other", image: "https://i.ibb.co/mrcNJ0f8/photo90.jpg" },
+            { id: 91, name: "HV-P01-054", type: "other", image: "https://i.ibb.co/Cprd4XC9/photo91.jpg" },
+            { id: 92, name: "HV-P01-054p", type: "other", image: "https://i.ibb.co/62KJqh3/photo92.jpg" },
+            { id: 93, name: "HV-P01-055", type: "other", image: "https://i.ibb.co/xq2rPLyC/photo93.jpg" },
+            { id: 94, name: "HV-P01-055p", type: "other", image: "https://i.ibb.co/B5Qs6kHc/photo94.jpg" },
+            { id: 95, name: "HV-P01-056", type: "other", image: "https://i.ibb.co/twSh1rGC/photo95.jpg" },
+            { id: 96, name: "HV-P01-056p", type: "other", image: "https://i.ibb.co/6JHyDqz5/photo96.jpg" },
+            { id: 97, name: "HV-P01-057", type: "other", image: "https://i.ibb.co/prbh1ffF/photo97.jpg" },
+            { id: 98, name: "HV-P01-058", type: "other", image: "https://i.ibb.co/9HZnMbNc/photo98.jpg" },
+            { id: 99, name: "HV-P01-059", type: "other", image: "https://i.ibb.co/whXqxY2k/photo99.jpg" },
+            { id: 100, name: "HV-P01-060", type: "other", image: "https://i.ibb.co/XfSqzsft/photo100.jpg" },
+            { id: 101, name: "HV-P01-061", type: "other", image: "https://i.ibb.co/dwB3SZhq/photo101.jpg" },
+            { id: 102, name: "HV-P01-062", type: "other", image: "https://i.ibb.co/b5TP0Qpc/photo102.jpg" },
+            { id: 103, name: "HV-P01-063", type: "other", image: "https://i.ibb.co/YBHN8ZsT/photo103.jpg" },
+            { id: 104, name: "HV-P01-064", type: "other", image: "https://i.ibb.co/bgf19MqG/photo104.jpg" },
+            { id: 105, name: "HV-P01-065", type: "other", image: "https://i.ibb.co/nNryfxt3/photo105.jpg" },
+            { id: 106, name: "HV-P01-066", type: "other", image: "https://i.ibb.co/1fP5DbN9/photo106.jpg" },
+            { id: 107, name: "HV-P01-067", type: "other", image: "https://i.ibb.co/QjN10YdP/photo107.jpg" },
+            { id: 108, name: "HV-P01-068", type: "other", image: "https://i.ibb.co/fYXNcYr4/photo108.jpg" },
+            { id: 109, name: "HV-P01-069", type: "other", image: "https://i.ibb.co/bg2rs5WS/photo109.jpg" },
+            { id: 110, name: "HV-P01-070", type: "other", image: "https://i.ibb.co/bg2rs5WS/photo110.jpg" },
+            { id: 111, name: "HV-P01-071", type: "other", image: "https://i.ibb.co/HfcpffSX/photo111.jpg" },
+            { id: 112, name: "HV-P01-072", type: "other", image: "https://i.ibb.co/spDGZSvB/photo112.jpg" },
+            { id: 113, name: "HV-P01-073", type: "other", image: "https://i.ibb.co/mCsL6LJX/photo113.jpg" },
+
+            // 事件卡片
+            { id: 114, name: "HV-D01-011", type: "event", image: "https://i.ibb.co/FbY6WXbp/photo114.jpg" },
+            { id: 115, name: "HV-D01-012", type: "event", image: "https://i.ibb.co/VWQL6nTQ/photo115.jpg" },
+            { id: 116, name: "HV-D02-011", type: "event", image: "https://i.ibb.co/23Y3Bpy7/photo116.jpg" },
+            { id: 117, name: "HV-D02-012", type: "event", image: "https://i.ibb.co/LXZzGYP1/photo117.jpg" },
+            { id: 118, name: "HV-P01-074", type: "event", image: "https://i.ibb.co/nNNtH0WZ/photo118.jpg" },
+            { id: 119, name: "HV-P01-075", type: "event", image: "https://i.ibb.co/t5hX2vQ/photo119.jpg" },
+            { id: 120, name: "HV-P01-076", type: "event", image: "https://i.ibb.co/GfN7pL2G/photo120.jpg" },
+            { id: 121, name: "HV-P01-077", type: "event", image: "https://i.ibb.co/spZnZ5FK/photo121.jpg" },
+            { id: 122, name: "HV-P01-078", type: "event", image: "https://i.ibb.co/tpcyVfp9/photo122.jpg" },
+            { id: 123, name: "HV-P01-079", type: "event", image: "https://i.ibb.co/FLKzPS0W/photo123.jpg" },
+            { id: 124, name: "HV-P01-080", type: "event", image: "https://i.ibb.co/RGg3srcM/photo124.jpg" },
+            { id: 125, name: "HV-P01-081", type: "event", image: "https://i.ibb.co/wrQ9FnFF/photo125.jpg" },
+            { id: 126, name: "HV-P01-082", type: "event", image: "https://i.ibb.co/m5H4sdxf/photo126.jpg" },
+            { id: 127, name: "HV-P01-083", type: "event", image: "https://i.ibb.co/VpYg60vT/photo127.jpg" },
+            { id: 128, name: "HV-P01-084", type: "event", image: "https://i.ibb.co/0pFnFTqs/photo128.jpg" },
+            { id: 129, name: "HV-P01-085", type: "event", image: "https://i.ibb.co/gMbvTMCN/photo129.jpg" },
+            { id: 130, name: "HV-P01-086", type: "event", image: "https://i.ibb.co/d42dNZ0V/photo130.jpg" },
+            { id: 131, name: "HV-P01-087", type: "event", image: "https://i.ibb.co/s9FXh3zy/photo131.jpg" },
+            { id: 132, name: "HV-P01-088", type: "event", image: "https://i.ibb.co/YTX3g33W/photo132.jpg" },
+            { id: 133, name: "HV-P01-089", type: "event", image: "https://i.ibb.co/tT64t2zQ/photo133.jpg" },
+            { id: 134, name: "HV-P01-090", type: "event", image: "https://i.ibb.co/G4s7fYRh/photo134.jpg" },
+            { id: 135, name: "HV-P01-091", type: "event", image: "https://i.ibb.co/yKctgw7/photo135.jpg" },
+            { id: 136, name: "HV-P01-092", type: "event", image: "https://i.ibb.co/svcXfyYL/photo136.jpg" },
+            { id: 137, name: "HV-P01-093", type: "event", image: "https://i.ibb.co/1fbKjC7p/photo137.jpg" },
+
+            // HVBP卡片
+            { id: 138, name: "HVBP-001", type: "hvbp", image: "https://i.ibb.co/MkK2vZn4/photo138.jpg" },
+            { id: 139, name: "HVBP-002", type: "hvbp", image: "https://i.ibb.co/pv9WybzQ/photo139.jpg" },
+            { id: 140, name: "HVBP-003", type: "hvbp", image: "https://i.ibb.co/Ps0P8ntd/photo140.jpg" },
+            { id: 141, name: "HVBP-004", type: "hvbp", image: "https://i.ibb.co/HDN8WtJK/photo141.jpg" },
+            { id: 142, name: "HVBP-005", type: "hvbp", image: "https://i.ibb.co/TBCZjFLC/photo142.jpg" },
+            { id: 143, name: "HVBP-006", type: "hvbp", image: "https://i.ibb.co/sJzD73qv/photo143.jpg" },
+            { id: 144, name: "HVBP-007", type: "hvbp", image: "https://i.ibb.co/Pz1xxmZz/photo144.jpg" },
+            { id: 145, name: "HVBP-008", type: "hvbp", image: "https://i.ibb.co/Y7N9pRws/photo145.jpg" },
+            { id: 146, name: "HVBP-009", type: "hvbp", image: "https://i.ibb.co/Y4txnyYp/photo146.jpg" },
+            { id: 147, name: "HVBP-010", type: "hvbp", image: "https://i.ibb.co/RT3J86H0/photo147.jpg" },
+            { id: 148, name: "HVBP-011", type: "hvbp", image: "https://i.ibb.co/hJy93w6q/photo148.jpg" },
+            { id: 149, name: "HVBP-012", type: "hvbp", image: "https://i.ibb.co/SXcx7yFX/photo149.jpg" },
+            { id: 150, name: "HVBP-013", type: "hvbp", image: "https://i.ibb.co/Q7bDdj11/photo150.jpg" },
+            { id: 151, name: "HVBP-014", type: "hvbp", image: "https://i.ibb.co/TMdgNj0h/photo151.jpg" },
+
+            // HVPR卡片
+            { id: 152, name: "HV-PR-001", type: "hvpr", image: "https://i.ibb.co/RkLYXpqv/photo152.jpg" },
+            { id: 153, name: "HV-PR-002", type: "hvpr", image: "https://i.ibb.co/zVh4yt10/photo153.jpg" },
+            { id: 154, name: "HV-PR-003", type: "hvpr", image: "https://i.ibb.co/TDdyhFHx/photo154.jpg" },
+            { id: 155, name: "HV-PR-004", type: "hvpr", image: "https://i.ibb.co/MDbFWLBH/photo155.jpg" },
+            { id: 156, name: "HV-PR-005", type: "hvpr", image: "https://i.ibb.co/G34bbCC6/photo156.jpg" },
+            { id: 157, name: "HV-PR-006", type: "hvpr", image: "https://i.ibb.co/W4pdfFnc/photo157.jpg" },
+            { id: 158, name: "HV-PR-007", type: "hvpr", image: "https://i.ibb.co/F4ZK8Mn0/photo158.jpg" },
+            { id: 159, name: "HV-PR-008", type: "hvpr", image: "https://i.ibb.co/mmT9j3n/photo159.jpg" },
+            { id: 160, name: "HV-PR-009", type: "hvpr", image: "https://i.ibb.co/pvfJbmYC/photo160.jpg" },
+            { id: 161, name: "HV-PR-010", type: "hvpr", image: "https://i.ibb.co/dJKZFKnk/photo161.jpg" },
+            { id: 162, name: "HV-PR-011", type: "hvpr", image: "https://i.ibb.co/prLN0jZ0/photo162.jpg" },
+            { id: 163, name: "HV-PR-012", type: "hvpr", image: "https://i.ibb.co/F4xjt4Pd/photo163.jpg" },
+            { id: 164, name: "HV-PR-013", type: "hvpr", image: "https://i.ibb.co/8nbXY1p1/photo164.jpg" },
+            { id: 165, name: "HV-PR-014", type: "hvpr", image: "https://i.ibb.co/W41zq6MX/photo165.jpg" },
+            { id: 166, name: "HV-PR-015", type: "hvpr", image: "https://i.ibb.co/qY0GKnLZ/photo166.jpg" }
+        ];
+
+        // 當前牌組
+        let currentDeck = [];
+        let currentCardType = 'all';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAllCards();
+            setupEventListeners();
+        });
+        
+        // 設置事件監聽器
+        function setupEventListeners() {
+            // 卡片類型篩選
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCardType = this.dataset.type;
+                    renderAllCards();
+                });
+            });
+            
+            // 牌組區域拖拽事件
+            const deckArea = document.getElementById('deck-area');
+            deckArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            });
+            
+            deckArea.addEventListener('dragleave', function() {
+                this.classList.remove('drag-over');
+            });
+            
+            deckArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                
+                const cardId = e.dataTransfer.getData('text/plain');
+                if (cardId) {
+                    const card = allCards.find(c => c.id == cardId);
+                    if (card) {
+                        addToDeck(card);
+                    }
+                }
+            });
+        }
+        
+        // 渲染所有卡片
+        function renderAllCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            
+            let filteredCards = allCards;
+            
+            // 應用篩選
+            if (currentCardType !== 'all') {
+                filteredCards = allCards.filter(card => card.type === currentCardType);
+            }
+            
+            // 渲染卡片
+            filteredCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'card';
+                cardElement.dataset.id = card.id;
+                cardElement.draggable = true;
+                
+                // 設置拖拽數據
+                cardElement.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', card.id);
+                    this.classList.add('dragging');
+                });
+                
+                cardElement.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+                
+                cardElement.innerHTML = `
+                    <div class="card-image">
+                        <img src="${card.image}" alt="${card.name}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+                    </div>
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-type">${getTypeText(card.type)}</div>
+                    <div class="card-actions">
+                        <button class="card-btn add-btn" data-id="${card.id}">+</button>
+                    </div>
+                `;
+                
+                // 點擊添加到牌組
+                cardElement.querySelector('.add-btn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    addToDeck(card);
+                });
+                
+                container.appendChild(cardElement);
+            });
+        }
+        
+        // 添加到牌組
+        function addToDeck(card) {
+            // 檢查牌組是否已滿
+            if (currentDeck.length >= 40) {
+                showNotification('牌組已滿！最多只能添加40張卡片。', 'error');
+                return;
+            }
+            
+            // 檢查事件卡數量限制
+            if (card.type === 'event') {
+                const eventCardCount = currentDeck.filter(c => c.type === 'event').length;
+                if (eventCardCount >= 8) {
+                    showNotification('事件卡最多只能放8張！', 'warning');
+                    return;
+                }
+            }
+            
+            // 添加到牌組
+            currentDeck.push({...card});
+            
+            // 更新UI
+            updateDeckDisplay();
+            showNotification(`已添加卡片: ${card.name}`, 'success');
+        }
+        
+        // 從牌組中移除卡片
+        function removeFromDeck(cardId) {
+            const index = currentDeck.findIndex(card => card.id === cardId);
+            if (index !== -1) {
+                currentDeck.splice(index, 1);
+                updateDeckDisplay();
+            }
+        }
+        
+        // 更新牌組顯示
+        function updateDeckDisplay() {
+            const deckList = document.getElementById('deck-list');
+            const deckCount = document.getElementById('deck-count');
+            const totalCount = document.getElementById('total-count');
+            const eventCount = document.getElementById('event-count');
+            
+            // 計算事件卡數量
+            const eventCardCount = currentDeck.filter(card => card.type === 'event').length;
+            
+            // 更新計數
+            totalCount.textContent = currentDeck.length;
+            eventCount.textContent = eventCardCount;
+            deckCount.textContent = `${currentDeck.length}/40`;
+            
+            // 更新牌組列表
+            if (currentDeck.length === 0) {
+                deckList.innerHTML = '<div class="empty-deck">牌組目前是空的，請從左側添加卡片</div>';
+            } else {
+                deckList.innerHTML = '';
+                
+                // 按卡片ID分組
+                const groupedCards = {};
+                currentDeck.forEach(card => {
+                    if (!groupedCards[card.id]) {
+                        groupedCards[card.id] = {
+                            card: card,
+                            count: 1
+                        };
+                    } else {
+                        groupedCards[card.id].count++;
+                    }
+                });
+                
+                // 渲染牌組中的卡片
+                Object.values(groupedCards).forEach(item => {
+                    const deckCardElement = document.createElement('div');
+                    deckCardElement.className = 'deck-card';
+                    
+                    deckCardElement.innerHTML = `
+                        <div class="deck-card-image">
+                            <img src="${item.card.image}" alt="${item.card.name}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">
+                        </div>
+                        <div class="deck-card-name">${item.card.name}</div>
+                        <div class="deck-card-type">${getTypeText(item.card.type)}</div>
+                        <div class="deck-card-count">
+                            <button class="count-btn remove-btn" data-id="${item.card.id}">-</button>
+                            <span class="count-number">${item.count}</span>
+                            <button class="count-btn add-btn" data-id="${item.card.id}">+</button>
+                        </div>
+                    `;
+                    
+                    deckList.appendChild(deckCardElement);
+                });
+                
+                // 添加按鈕的事件監聽器
+                document.querySelectorAll('.deck-card .add-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const cardId = parseInt(this.dataset.id);
+                        const card = allCards.find(c => c.id === cardId);
+                        if (card) addToDeck(card);
+                    });
+                });
+                
+                document.querySelectorAll('.deck-card .remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        removeFromDeck(parseInt(this.dataset.id));
+                    });
+                });
+            }
+            
+            // 更新統計信息
+            updateDeckStats();
+        }
+        
+        // 更新牌組統計
+        function updateDeckStats() {
+            // 計算事件卡數量
+            const eventCount = currentDeck.filter(card => card.type === 'event').length;
+            
+            document.getElementById('stat-total').textContent = currentDeck.length;
+            document.getElementById('stat-event').textContent = eventCount;
+        }
+        
+        // 顯示通知
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = 'notification';
+            
+            if (type === 'warning') {
+                notification.classList.add('warning');
+            } else if (type === 'error') {
+                notification.classList.add('error');
+            }
+            
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 輔助函數：獲取類型文本
+        function getTypeText(type) {
+            const typeMap = {
+                'karasuno': '烏野高校',
+                'nekoma': '音駒高校',
+                'aoba-johsai': '青葉城西',
+                'fukurodani': '梟谷高校',
+                'other': '其他高校',
+                'event': '事件',
+                'hvbp': 'HVBP',
+                'hvpr': 'HVPR'
+            };
+            return typeMap[type] || type;
+        }
+    </script>
+</body>
+</html>
